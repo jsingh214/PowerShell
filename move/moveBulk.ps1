@@ -8,7 +8,7 @@ $oldSchool = Read-Host 'Which school needs a group moved? Please type the school
 Please  Type in the initials of school.'
 
 #This switch statement automatically sets $oldSchool to the proper variable for the next school after it is set by user
-#A new variable is created to represent the next school and is deteremined with if else
+#A new variable is created to represent the next school and is determined with if else
 If ($oldSchool -eq 'PPS' -or 'UMS')
 {
   $newSchool = 'MBS'
@@ -22,7 +22,7 @@ ElseIf ($oldSchool -eq 'CMS')
   $newSchool = 'CHS'
 }
 
-#
+#TODO: Add an exit the array loop sequence when done adding students to exclusion
 $gradyear = Read-Host 'Which graduation year group of students would you like to move? Please
 type in the OU graduation year. .'
 
@@ -35,7 +35,7 @@ Please type in there username.")
 until ($input -eq '')
 $exclude	
 
-
+#TODO: Look into how objects are moved if the operation was stopped our halted
 Move-ADObject "OU=District,OU=$oldSchool,OU=$gradyear,DC=csd,DC=local -exclude $exclude" -TargetPath "OU=District,OU=$newSchool,OU=$gradyear,DC=csd,DC=local"
 
 Set-ADGroup "CN=gj test2,OU=TEST_GRAHAM,OU=TEST OU,DC=X,DC=XX,DC=XXX" -Remove @{exclude}

@@ -1,3 +1,10 @@
+#==============================================================================
+# File:    cleanupHomeDirectoriestudents.ps1
+# Author:  Jason Singh
+# Date:    7/24/2014
+# Purpose: Cleans up student home directories from a specified school.
+#==============================================================================
+
 #Imports AD module...
 Import-Module ActiveDirectory
 

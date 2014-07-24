@@ -27,7 +27,7 @@ $searchOU = 'Ou=Students,OU=CHS,OU=District,DC=csd,DC=local'
 }
 Else
 {
-Write-Host 'Not a school defined above. Please run the script again...'
+Write-Host 'Not a valid answer. Please run the script again to continue...'
 exit
 }
 
@@ -36,7 +36,8 @@ $users = Get-ADuser -filter * -SearchBase $searchOU -properties HomeDirectory
 
 #Using a foreach loop it will look in each students home directory and delete everything except the home directory folder...
 foreach ($user in $users) { 
-Get-ChildItem $user.HomeDirectory -Force | Remove-Item -Force -Recurse
+$delete = Get-ChildItem $user.HomeDirectory -Force | Remove-Item -Force -Recurse
+echo $delete
 }
 Write-Host 'Processing, please wait for confirmation...'
 

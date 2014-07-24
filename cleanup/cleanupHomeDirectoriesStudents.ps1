@@ -7,27 +7,28 @@ $school = Read-Host 'Which school needs student home directories cleaned up?(Ple
 #Uses and if else statement to determine which school after input...
 If ($school -eq 'PPS')
 {
-$searchOU = 'OU=PPS,OU=District,DC=csd,DC=local'
+$searchOU = 'Ou=Students,OU=PPS,OU=District,DC=csd,DC=local'
 }
 ElseIf ($school -eq 'UMS')
 {
-$searchOU = 'OU=UMS,OU=District,DC=csd,DC=local'
+$searchOU = 'Ou=Students,OU=UMS,OU=District,DC=csd,DC=local'
 }
 ElseIf ($school -eq 'MBS')
 {
-$searchOU = 'OU=MBS,OU=District,DC=csd,DC=local'
+$searchOU = 'Ou=Students,OU=MBS,OU=District,DC=csd,DC=local'
 }
 ElseIf ($school -eq 'CMS')
 {
-$searchOU = 'OU=CMS,OU=District,DC=csd,DC=local'
+$searchOU = 'Ou=Students,OU=CMS,OU=District,DC=csd,DC=local'
 }
 ElseIf ($school -eq 'CHS')
 {
-$searchOU = 'OU=CHS,OU=District,DC=csd,DC=local'
+$searchOU = 'Ou=Students,OU=CHS,OU=District,DC=csd,DC=local'
 }
 Else
 {
-Write-Host 'Not a school defined above.'
+Write-Host 'Not a school defined above. Please run the script again...'
+exit
 }
 
 #Sets a variable to users which is all users found in the specified OU and their home directories...
@@ -37,3 +38,8 @@ $users = Get-ADuser -filter * -SearchBase $searchOU -properties HomeDirectory
 foreach ($user in $users) { 
 Get-ChildItem $user.HomeDirectory -Force | Remove-Item -Force -Recurse
 }
+Write-Host 'Processing, please wait for confirmation...'
+
+Out-File C:\logs\cleanup.txt
+
+Write-Host 'Student file cleanup successful, see resutls in C:\logs\cleanup.txt...'

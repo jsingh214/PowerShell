@@ -27,17 +27,21 @@ ElseIf ($oldSchool -eq 'CMS')
   $ADgroup = 'CHS Students'
   $ADgroupWeb = 'CHS Students Web'
 }
+Else
+{
+Write-Host 'Not a valid answer. Please run the script again to continue...'
+exit
+}
 
-#TODO: Add an exit the array loop sequence when done adding students to exclusion...
 #The graduation year is set as a variable determined by user...
 $gradYear = Read-Host 'Which graduation year group of students would you like to move? Please
-type in the OU graduation year: '
+type in the OU graduation year'
 
 #This loop goes in and creates an array of students to be entered who are excluded from the process for whatever reason...
 $exclude = @()
 do {
  $input = (Read-Host 'Are there any students that should not be moved?(Ex. Not graduating)
-Please type in there username. To exit entering usernames hit enter leaving it blank or type quit or exit: ')
+Please type in there username. To exit entering usernames hit enter leaving it blank or type quit or exit')
  if ($input -ne '') {$exclude += $input}
 }
 until ($input -eq '' -or 'quit' -or 'exit')

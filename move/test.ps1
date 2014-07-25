@@ -5,10 +5,9 @@ Import-Module ActiveDirectory
 
 #Variable that represents the current graduated school...
 $oldSchool = 'Test2'
-
-  $newSchool = 'Test3'
-  $ADgroup = 'CHS Students'
-  $ADgroupWeb = 'CHS Students Web'
+$newSchool = 'Test3'
+$ADgroup = 'CHS Students'
+$ADgroupWeb = 'CHS Students Web'
 
 
 #This loop goes in and creates an array of students to be entered who are excluded from the process for whatever reason...
@@ -40,4 +39,7 @@ Remove-ADGroupMember -Identity $_ -Members $users -Confirm:$false
 
 #Add the users to their proper groups after being removed from their previous ones...
 Add-ADGroupMember -Identity $ADgroup $_ -Members $users -Confirm:$false  
-Add-ADGroupMember -Identity $ADgroupWeb $_ -Members $users -Confirm:$false#>
+Add-ADGroupMember -Identity $ADgroupWeb $_ -Members $users -Confirm:$false
+
+Test input array:
+[array]$employees = (Read-Host “Employee (separate with comma)”).split(“,”) | %{$_.trim()} #>

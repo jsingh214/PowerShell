@@ -12,7 +12,7 @@ $ErrorActionPreference = "SilentlyContinue"
 Import-Module ActiveDirectory
 
 #Takes in a user inputted variable to determine which school students to clean up home directories for...
-$school = Read-Host 'Which school needs student home directories cleaned up?(Please answer, PPS, UMS, MBS, CMS, or CHS.)'
+$school = Read-Host 'Which school needs a student home directory clean up?(Please answer, PPS, UMS, MBS, CMS, or CHS.)'
 
 #Uses and if else statement to determine which school after input...
 If ($school -eq 'PPS')

@@ -42,11 +42,20 @@ exit
 $users = Get-ADuser -filter * -SearchBase $searchOU -properties HomeDirectory
 
 #Using a foreach loop it will look in each students home directory and delete everything except the home directory folder...
-foreach ($user in $users) { 
-$userHomeFolder = -join $user.homedirectory
-If (Test-Path $userHomeFolder) { 
-Get-ChildItem $user.HomeDirectory | Remove-Item -Recurse
+#Comment from email: Script should only delete the folders where the folder name and the samaccountname match, so if you have any users without a homedir set nothing will get deleted.
+#Remember to remove the -whatif only after ensuring the results are as you desire.
+
+
+foreach ($user in $users) 
+{ 
+$sam = (Get-Aduser -identity $user).samaccountname
+$homeDir = (Get-Aduser -Identity $user -Properties HomeDirectory).homedirectory
+$dir = Split-Path $homeDir -Leaf
+If($sam -eq $dir)
+{
+Get-ChildItem $user.HomeDirectory | Remove-Item -Recurse -Force -WhatIf
 }
 }
+
 
 Write-Host 'Student file cleanup successful.'

@@ -49,12 +49,12 @@ $exclude
 
 #TODO: Look into how objects are moved if the operation was stopped our halted 
 #Here is where the entire folder graduation year container is moved to its new location using this command...
-Move-ADObject "CN=District,CN=$oldSchool,CN=$gradYear,DC=csd,DC=local -exclude $exclude" -TargetPath "CN=District,CN=$newSchool,DC=csd,DC=local"
+Move-ADObject 'OU=$gradYear,OU=$oldSchool,OU=District,DC=csd,DC=local' -exclude $exclude -TargetPath 'OU=$newSchool,OU=District,DC=csd,DC=local'
 
 #This begins with a three step process to remove the members from their groups...
 # 1. Members are searched, found, and determined by these two commands and are set to a variable... 
-$searchCN = "CN=District,CN=$newSchool,CN=$gradYear,DC=csd,DC=local"
-$users = Get-ADuser -filter * -searchbase $searchCN -properties DistinguishedName | Select -expandProperty DistinguishedName | -Properties memberOf |
+$searchOU = 'OU=District,OU=$newSchool,OU=$gradYear,DC=csd,DC=local'
+$users = Get-ADuser -filter * -searchbase $searchOU -properties DistinguishedName | Select -expandProperty DistinguishedName | -Properties memberOf |
 
 # 2. Retrieve groups that the users are a member of...
 $groups = $users.memberOf |ForEach-Object {

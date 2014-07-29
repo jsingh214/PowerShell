@@ -5,6 +5,8 @@
 # Purpose: Cleans up student home directories from a specified school.
 #==============================================================================
 
+$ErrorActionPreference = "SilentlyContinue"
+
 #Imports AD module...
 Import-Module ActiveDirectory
 
@@ -49,11 +51,13 @@ $users = Get-ADuser -filter * -SearchBase $searchOU -properties HomeDirectory
 foreach ($user in $users) 
 { 
 $sam = (Get-Aduser -identity $user).samaccountname
-$homeDir = (Get-Aduser -Identity $user -Properties HomeDirectory).homedirectory
+$homeDir = (Get-Aduser -Identity $user -Properties HomeDirectory).homedirectory 
+echo Cleaning...
+$homeDir
 $dir = Split-Path $homeDir -Leaf
 If($sam -eq $dir)
 {
-Get-ChildItem $user.HomeDirectory | Remove-Item -Recurse -Force -WhatIf
+Get-ChildItem $user.HomeDirectory | Remove-Item -Recurse -Force
 }
 }
 

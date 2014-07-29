@@ -11,14 +11,14 @@ $ADgroupWeb = 'CHS Students Web'
 
 
 #This loop goes in and creates an array of students to be entered who are excluded from the process for whatever reason...
-$exclude = @()
+<#$exclude = @()
 do {
  $input = (Read-Host 'Are there any students that should not be moved?(Ex. Not graduating)
 Please type in there username. To exit entering usernames hit enter leaving it blank or type quit or exit')
  if ($input -ne '') {$exclude += $input}
 }
 until ($input -eq '' -or $input -eq 'quit' -or $input -eq 'exit')
-$exclude	
+$exclude	#>
 
 #This uses double quotes because its needed for any strings where you need to evaluate the variables within. 
 $searchOU = "OU=$oldSchool,OU=District,DC=csd,DC=local"
@@ -27,7 +27,7 @@ $users = Get-ADuser -filter * -SearchBase $searchOU
 #Here is where the entire folder graduation year container is moved to its new location using this command...
 
 foreach ($user in $users) {
-Move-ADObject -Identity $user -exclude $exclude -TargetPath "OU=$newSchool,OU=District,DC=csd,DC=local"
+Move-ADObject -Identity $user <#-Exclude $exclude#> -TargetPath "OU=$newSchool,OU=District,DC=csd,DC=local"
 }
 
 #This begins with a three step process to remove the members from their groups...

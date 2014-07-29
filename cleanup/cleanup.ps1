@@ -5,6 +5,7 @@
 # Purpose: Cleans up student home directories from a specified school.
 #==============================================================================
 
+#This is needed to supress errors, in this case to supress null path errors.
 $ErrorActionPreference = "SilentlyContinue"
 
 #Imports AD module...
@@ -44,10 +45,7 @@ exit
 $users = Get-ADuser -filter * -SearchBase $searchOU -properties HomeDirectory
 
 #Using a foreach loop it will look in each students home directory and delete everything except the home directory folder...
-#Comment from email: Script should only delete the folders where the folder name and the samaccountname match, so if you have any users without a homedir set nothing will get deleted.
-#Remember to remove the -whatif only after ensuring the results are as you desire.
-
-
+#It knows what to delete because there is a check to detemine that the home folder matches the accounts name...
 foreach ($user in $users) 
 { 
 $sam = (Get-Aduser -identity $user).samaccountname
@@ -61,5 +59,5 @@ Get-ChildItem $user.HomeDirectory | Remove-Item -Recurse -Force
 }
 }
 
-
+#Confirmation message...
 Write-Host 'Student file cleanup successful.'

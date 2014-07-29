@@ -44,25 +44,24 @@ do {
 Please type in there username. To exit entering usernames hit enter leaving it blank or type quit or exit')
  if ($input -ne '') {$exclude += $input}
 }
-until ($input -eq '' -or 'quit' -or 'exit')
+until ($input -eq '' -or $input -eq 'quit' -or $input -eq 'exit')
 $exclude	
 
+#This uses double quotes because its needed for any strings where you need to evaluate the variables within. 
+$searchOU = "OU=$gradYear,OU=Students,OU=$oldSchool,OU=District,DC=csd,DC=local"
+$users = Get-ADuser -filter * -SearchBase $searchOU
 #TODO: Look into how objects are moved if the operation was stopped our halted 
 #Here is where the entire folder graduation year container is moved to its new location using this command...
-Move-ADObject 'OU=$gradYear,OU=$oldSchool,OU=District,DC=csd,DC=local' -exclude $exclude -TargetPath 'OU=$newSchool,OU=District,DC=csd,DC=local'
 
-#This begins with a three step process to remove the members from their groups...
-# 1. Members are searched, found, and determined by these two commands and are set to a variable... 
-$searchOU = 'OU=District,OU=$newSchool,OU=$gradYear,DC=csd,DC=local'
-$users = Get-ADuser -filter * -searchbase $searchOU -properties DistinguishedName | Select -expandProperty DistinguishedName | -Properties memberOf |
+foreach ($user in $users) {
+Move-ADObject -Identity $user -exclude $exclude -TargetPath "OU=$gradYear,OU=Students,OU=$newSchool,OU=District,DC=csd,DC=local"
+}
 
-# 2. Retrieve groups that the users are a member of...
-$groups = $users.memberOf |ForEach-Object {
-    Get-ADGroup $_
-} 
 
-# 3. Go through the groups and remove the users...
-Remove-ADGroupMember -Identity $_ -Members $users -Confirm:$false
+foreach ($user in $users) {
+ Remove-QADMemberOf -Identity $user.dn -RemoveAll
+}
+
 
 #Add the users to their proper groups after being removed from their previous ones...
 Add-ADGroupMember -Identity $ADgroup $_ -Members $users -Confirm:$false  

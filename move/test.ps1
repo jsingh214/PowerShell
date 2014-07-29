@@ -20,7 +20,7 @@ Please type in there username. To exit entering usernames hit enter leaving it b
 until ($input -eq '' -or $input -eq 'quit' -or $input -eq 'exit')
 $exclude	
 
-
+#This uses double quotes because its needed for any strings where you need to evaluate the variables within. 
 $searchOU = "OU=$oldSchool,OU=District,DC=csd,DC=local"
 $users = Get-ADuser -filter * -SearchBase $searchOU
 #TODO: Look into how objects are moved if the operation was stopped our halted 

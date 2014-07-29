@@ -50,8 +50,7 @@ foreach ($user in $users)
 { 
 $sam = (Get-Aduser -identity $user).samaccountname
 $homeDir = (Get-Aduser -Identity $user -Properties HomeDirectory).homedirectory 
-echo Cleaning...
-$homeDir
+Write-Host Cleaning $homeDir...
 $dir = Split-Path $homeDir -Leaf
 If($sam -eq $dir)
 {

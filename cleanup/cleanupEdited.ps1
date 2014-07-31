@@ -6,7 +6,7 @@
 #==============================================================================
 
 #This is needed to supress errors, in this case to supress null path errors.
-#$ErrorActionPreference = "SilentlyContinue"
+$ErrorActionPreference = "SilentlyContinue"
 
 #Imports AD module...
 Import-Module ActiveDirectory
@@ -46,6 +46,8 @@ $users = Get-ADuser -filter * -SearchBase $searchOU -properties HomeDirectory
 
 #Using a foreach loop it will look in each students home directory and delete everything except the home directory folder...
 #It knows what to delete because there is a check to detemine that the home folder matches the accounts name...
+If ($school -eq 'PPS' -or $school -eq 'UMS' -or $school -eq 'MBS' -or $school -eq 'CMS')
+{
 foreach ($user in $users) 
 { 
 $sam = (Get-Aduser -identity $user).samaccountname
@@ -57,7 +59,23 @@ Write-Host Cleaning $homeDir..
 Get-ChildItem $user.HomeDirectory | Remove-Item -Force -Recurse
 }
 }
-
+}
 #Confirmation message...
 Write-Host 'Student file cleanup successful.'
 
+
+#TODO: add condition that deletes the senior home folders, you can do this by adding an if else within the option of selecting CHS at the top
+If ($school -eq 'CHS')
+{
+foreach ($user in $users) 
+{ 
+$sam = (Get-Aduser -identity $user).samaccountname
+$homeDir = (Get-Aduser -Identity $user -Properties HomeDirectory).HomeDirectory 
+$dir = Split-Path $homeDir -Leaf
+If($sam -eq $dir)
+{
+Write-Host Deleting $homeDir..
+Remove-Item $user.HomeDirectory -Force -Recurse
+}
+}
+}

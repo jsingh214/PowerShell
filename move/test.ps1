@@ -2,60 +2,73 @@
 #Start of script...
 Import-Module ActiveDirectory
 
+$searchOU = 
+Get-ADuser -filter * -SearchBase $searchOU
+
 #Questions begin to determine variable data...
 #Variable that represents the current graduated school...
 $oldSchool = Read-Host 'Which school needs a group moved? Please type the school initials.
-Please  type in the initials of school.'
+Please  type in the initials of school'
 
 #This switch statement automatically sets $oldSchool to the proper variable for the next school after it is set by user...
 #A new variables are created to represent the next school, which primary domain group they are in, and which web group by using if else...
-If ($oldSchool -eq 'PPS' -or 'UMS')
-{
-  $newSchool = 'MBS'
-  $ADgroup = 'MBS Students'
-  $ADgroupWeb = 'MBS Students Web'
+if ($oldSchool -eq 'PPS' -or 'UMS') {
+    $newSchool = 'MBS'
+    $ADgroup = 'MBS Students'
+    $ADgroupWeb = 'MBS Students Web'
 }
-ElseIf ($oldSchool -eq 'MBS')
-{
-  $newSchool = 'CMS'
-  $ADgroup = 'CMS Students'
-  $ADgroupWeb = 'CMS Students Web'
+elseif ($oldSchool -eq 'MBS') {
+    $newSchool = 'CMS'
+    $ADgroup = 'CMS Students'
+    $ADgroupWeb = 'CMS Students Web'
 }
-ElseIf ($oldSchool -eq 'CMS')
-{
-  $newSchool = 'CHS'
-  $ADgroup = 'CHS Students'
-  $ADgroupWeb = 'CHS Students Web'
+elseif ($oldSchool -eq 'CMS') {
+    $newSchool = 'CHS'
+    $ADgroup = 'CHS Students'
+    $ADgroupWeb = 'CHS Students Web'
 }
-Else
-{
-Write-Host 'Not a valid answer. Please run the script again to continue...'
+else {
+Write-Host "`n"'Not a valid answer. Please run the script again to continue...'
 exit
 }
 
 #The graduation year is set as a variable determined by user...
-$gradYear = Read-Host 'Which graduation year group of students would you like to move? Please
+$gradYear = Read-Host "`n"'Which graduation year group of students would you like to move? Please
 type in the OU graduation year'
 
 #This loop goes in and creates an array of students to be entered who are excluded from the process for whatever reason...
- Write-Host 'Are there any students that should not be moved?(Ex. Not graduating)
-Please type in there username. To exit entering usernames hit enter leaving it blank, or type quit, or exit.'
-$excluded = @()
-do {
- $input = (Read-Host)
- if ($input -ne '') {$exclude += $input}
+$excludeAnswer = Read-Host "`n"'Are there any students that should not be moved?(Ex. Not graduating) If so please type yes'
+if($excludeAnswer -eq "yes") {
+    Write-Host "`n"'Please type in there username. To exit entering usernames hit enter leaving it blank, or type quit, or exit.'
+    $excluded = @()
+    do {
+            $input = (Read-Host)
+            $excluded += ,$input
+       }
+    until ($input -eq '' -or $input -eq 'quit' -or $input -eq 'exit')
+
+    Write-Host "Are these the correct students to exlcude from the move? $excluded."
+    $confirm = Read-Host 'If so type yes and hit enter'
+
+    if($confirm -eq "yes") {
+        foreach($excludeUser in $excluded) {
+            
+        }
+    }
 }
-until ($input -eq '' -or $input -eq 'quit' -or $input -eq 'exit')
-$excluded	
-
-Write-Host "Are these the correct students to exlcude from the move? $excluded"
 
 
+    else {
+        Write-Host 'Not a valid answer. Please run the script again to continue...'
+        exit
+    }
 
+
+else {
 <#This uses double quotes because its needed for any strings where you need to evaluate the variables within. 
 $searchOU = "OU=$gradYear,OU=Students,OU=$oldSchool,OU=District,DC=csd,DC=local"
 $users = Get-ADuser -filter * -SearchBase $searchOU#>
-
+}
 
 
 

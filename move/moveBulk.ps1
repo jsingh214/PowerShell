@@ -15,16 +15,19 @@ if ($oldSchool -eq 'PPS' -or 'UMS') {
     $newSchool = 'MBS'
     $ADgroup = 'MBS Students'
     $ADgroupWeb = 'MBS Students Web'
+    $newHomeDir = \\mbs1\mbsusers$\Students\$gradYear\$username
 }
 elseif ($oldSchool -eq 'MBS') {
     $newSchool = 'CMS'
     $ADgroup = 'CMS Students'
     $ADgroupWeb = 'CMS Students Web'
+    $newHomeDir = \\cms1\cmsusers$\students\$gradYear\$username    
 }
 elseif ($oldSchool -eq 'CMS') {
     $newSchool = 'CHS'
     $ADgroup = 'CHS Students'
     $ADgroupWeb = 'CHS Students Web'
+    $newHomeDir = \\chs1\chsusers$\students\$gradYear\$username 
 }
 else {
 Write-Host 'Not a valid answer. Please run the script again to continue...'
@@ -73,8 +76,10 @@ if($excludeAnswer -eq "yes") {
         if($OUs -match $excludeYear){
         $excludePath = Get-ADOrganizationalUnit -Identity $excludeYear
         }
-        } 
+        }
+         
         foreach($excludeUser in $excluded) {
+        #TODO: Have it make a check that excludeyear exists and if it does move those users other wise create the OU then move
             Move-ADObject -Identity $excludeUser -TargetPath "OU=$excludeYear,OU=Students,OU=$oldSchool,OU=District,DC=csd,DC=local"
             }   
     }
@@ -86,8 +91,23 @@ if($excludeAnswer -eq "yes") {
 }
 
 $users = Get-ADuser -filter * -SearchBase "OU=$gradYear,OU=$oldSchool,OU=District,DC=csd,DC=local" -properties HomeDirectory
-#TODO: Look into how objects are moved if the operation was stopped our halted 
-#Here is where the entire folder graduation year container is moved to its new location using this command...
+
+#Using a foreach loop it will look in each students home directory and delete everything except the home directory folder...
+#It knows what to delete because there is a check to detemine that the home folder matches the accounts name...
+foreach ($user in $users) 
+{ 
+$sam = (Get-Aduser -identity $user).samaccountname
+$homeDir = (Get-Aduser -Identity $user -Properties HomeDirectory).HomeDirectory 
+$dir = Split-Path $homeDir -Leaf
+If($sam -eq $dir)
+{
+Write-Host Deleting $homeDir...
+Remove-Item $user.HomeDirectory -Force -Recurse
+}
+}
+
+#Confirmation message...
+Write-Host 'Student home directory cleanup successful.'
 
 foreach ($user in $users) {
     Remove-QADMemberOf -Identity $user.dn -RemoveAll
@@ -96,11 +116,8 @@ foreach ($user in $users) {
     Add-ADGroupMember -Identity $ADgroupWeb $_ -Members $user -Confirm:$false
     }
 
-foreach ($user in $users) {
-Move-ADObject -Identity $user -TargetPath "OU=$gradYear,OU=Students,OU=$newSchool,OU=District,DC=csd,DC=local"
-    }
-
-
+#This command moves the OU that was selected by the user to be moved to moved to the new school OU...
+Move-ADObject "OU=$gradYear,OU=Students,OU=$oldSchool,DC=District,csd=local" -TargetPath "OU=Students,OU=$newSchool,DC=District,csd=local"
 }
 }
     #This else belongs to school OU check at beginning of script...

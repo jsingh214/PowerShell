@@ -14,4 +14,4 @@ if([ADSI]::Exists("LDAP://OU=$oldSchool,OU=District,DC=csd,DC=local")) {
 
 
     $Username = $_.SamAccountName
-set-aduser gbaldwin -homedirectory \\servername\shareneme\$Username -homedrive u:
+set-aduser $Username -homedirectory \\servername\shareneme\$Username -homedrive I:

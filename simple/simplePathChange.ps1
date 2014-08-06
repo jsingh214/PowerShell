@@ -1,5 +1,5 @@
 ﻿#==============================================================================
-# File:    cleanupHomeDirectoriestudents.ps1
+# File:    simplePathChange.ps1
 # Author:  Jason Singh
 # Date:    7/24/2014
 # Purpose: Cleans up student home directories from a specified school.
@@ -14,8 +14,12 @@ Import-Module ActiveDirectory
 #Takes in a user inputted variable to determine which school students to clean up home directories for...
 $school = Read-Host 'Which school needs changes for home directories?(Please answer, PPS, UMS, MBS, CMS, or CHS.)'
 
+if([ADSI]::Exists("LDAP://OU=$school,OU=District,DC=csd,DC=local")) {    
+
 $gradYear = Read-Host 'Which graduation year group of students would you like to change home directories for? Please
 type in the OU graduation year'
+
+if([ADSI]::Exists("LDAP://OU=$gradYear,OU=Students,OU=$school,OU=District,DC=csd,DC=local")) {    
 
 #Uses and if else statement to determine which school after input...
 If ($school -eq 'PPS') {
@@ -39,45 +43,73 @@ exit
 }
 
 #Sets a variable to users which is all users found in the specified OU and their home directories...
-$users = Get-ADuser -filter * -SearchBase $searchOU -properties HomeDirectory
+$users = Get-ADuser -filter * -SearchBase $searchOU
 
 $newSchool = Read-Host 'What is name of the new school the home directories are going to?(Please answer, PPS, UMS, MBS, CMS, or CHS.)'
 
+if([ADSI]::Exists("LDAP://OU=$newSchool,OU=District,DC=csd,DC=local")) {    
+
 #Using a foreach loop it will look in each students home directory and delete everything except the home directory folder...
 #It knows what to delete because there is a check to detemine that the home folder matches the accounts name...
+
+Write-Host 'Double check the following fields...'
+Write-Host "Current School: $school"
+Write-Host "Graduation Year Group of Students: $gradYear"
+Write-Host "New School: $newSchool"
+
+$confirm = Read-Host 'Are the following fields correct? If so please type yes'
+
+
+if($confirm = 'yes'){
 foreach ($user in $users) {
 
-If ($newSchool -eq 'PPS') {
-$sam = (Get-Aduser -identity $user).samaccountname |           
-Set-ADUser -HomeDirectory "\\pps2\ppsusers$\Students\$gradYear\$sam" -HomeDrive "I:"
+$sam = (Get-Aduser -identity $user).samaccountname  
+
+If ($newSchool -eq 'PPS') {        
+Set-ADUser $sam -HomeDirectory "\\pps2\ppsusers$\Students\$gradYear\$sam" -HomeDrive "I:"
 Write-Host Changing home directory for $sam...  
 }
 
 ElseIf ($newSchool -eq 'UMS') {
-$sam = (Get-Aduser -identity $user).samaccountname |  
-Set-ADUser -HomeDirectory "\\ums2\umsusers$\Students\$gradYear\$sam" -HomeDrive "I:"
+Set-ADUser $sam -HomeDirectory "\\ums2\umsusers$\Students\$gradYear\$sam" -HomeDrive "I:"
 Write-Host Changing home directory for $sam...  
 }
 
-ElseIf ($newSchool -eq 'MBS') {
-$sam = (Get-Aduser -identity $user).samaccountname | 
-Set-ADUser -HomeDirectory "\\mbs1\mbsusers$\Students\$gradYear\$sam" -HomeDrive "I:" 
+ElseIf ($newSchool -eq 'MBS') { 
+Set-ADUser $sam -HomeDirectory "\\mbs1\mbsusers$\Students\$gradYear\$sam" -HomeDrive "I:" 
 Write-Host Changing home directory for $sam... 
 }
 
-ElseIf ($newSchool -eq 'CMS') {
-$sam = (Get-Aduser -identity $user).samaccountname | 
-Set-ADUser -HomeDirectory "\\cms1\cmsusers$\Students\$gradYear\$sam" -HomeDrive "I:" 
+ElseIf ($newSchool -eq 'CMS') { 
+Set-ADUser $sam -HomeDirectory "\\cms1\cmsusers$\Students\$gradYear\$sam" -HomeDrive "I:" 
 Write-Host Changing home directory for $sam... 
 }
 
-ElseIf ($newSchool -eq 'CHS') {
-$sam = (Get-Aduser -identity $user).samaccountname | 
-Set-ADUser -HomeDirectory "\\chs1\chsusers$\Students\$gradYear\$sam" -HomeDrive "I:"
+ElseIf ($newSchool -eq 'CHS') { 
+Set-ADUser $sam -HomeDirectory "\\chs1\chsusers$\Students\$gradYear\$sam" -HomeDrive "I:"
 Write-Host Changing home directory for $sam...  
 }
 }
-
+}
 
 #Confirmation message...
 Write-Host 'Home directory changes successful...'
+
+}
+
+else {
+Write-Host 'The school you entered does not exist as an OU. Please recheck the name and rerun the script.'
+}
+
+
+}
+
+else {
+Write-Host 'The graduation year for students you entered does not exist as an OU. Please recheck the year and rerun the script.'
+}
+
+}
+
+else {
+Write-Host 'The new school you entered does not exist as an OU. Please recheck the name and rerun the script.'
+}

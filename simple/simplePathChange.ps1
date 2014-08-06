@@ -17,7 +17,7 @@ $school = Read-Host 'Which school needs changes for home directories?(Please ans
 #This is a check to see if school OU exists...
 if([ADSI]::Exists("LDAP://OU=$school,OU=District,DC=csd,DC=local")) {    
 
-$gradYear = Read-Host 'Which graduation year group of students would you like to change home directories for? Please
+$gradYear = Read-Host "`n"'Which graduation year group of students would you like to change home directories for? Please
 type in the OU graduation year'
 
 #This is a check to see if graduation year OU exists...
@@ -47,19 +47,19 @@ exit
 #Sets a variable to users which is all users found in the specified OU and their home directory properties...
 $users = Get-ADuser -filter * -SearchBase $searchOU
 
-$newSchool = Read-Host 'What is name of the new school the home directories are going to?(Please answer, PPS, UMS, MBS, CMS, or CHS.)'
+$newSchool = Read-Host "`n"'What is name of the new school the home directories are going to?(Please answer, PPS, UMS, MBS, CMS, or CHS.)'
 
 #This is a check to see if new school OU exists...
 if([ADSI]::Exists("LDAP://OU=$newSchool,OU=District,DC=csd,DC=local")) {    
 
 #This is a check prompt to make sure that you have the following fields right for the change in home directories....
 
-Write-Host 'Double check the following fields...'
+Write-Host "`n"'Double check the following fields...'
 Write-Host "Current School: $school"
 Write-Host "Graduation Year Group of Students: $gradYear"
 Write-Host "New School: $newSchool"
 
-$confirm = Read-Host 'Are the following fields correct? If so please type yes'
+$confirm = Read-Host "`n"'Are the following fields correct? If so please type yes'
 
 
 if($confirm = 'yes'){
@@ -96,24 +96,24 @@ Write-Host Changing home directory for $sam...
 }
 
 #Confirmation message...
-Write-Host 'Home directory changes successful...'
+Write-Host "`n"'Home directory changes successful...'
 
 }
 
 #Else messages for checks above to see if objects exist...
 else {
-Write-Host 'The school you entered does not exist as an OU. Please recheck the name and rerun the script.'
+Write-Host "`n"'The school you entered does not exist as an OU. Please recheck the name and rerun the script.'
 }
 
 
 }
 
 else {
-Write-Host 'The graduation year for students you entered does not exist as an OU. Please recheck the year and rerun the script.'
+Write-Host "`n"'The graduation year for students you entered does not exist as an OU. Please recheck the year and rerun the script.'
 }
 
 }
 
 else {
-Write-Host 'The new school you entered does not exist as an OU. Please recheck the name and rerun the script.'
+Write-Host "`n"'The new school you entered does not exist as an OU. Please recheck the name and rerun the script.'
 }

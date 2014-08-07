@@ -1,8 +1,8 @@
 ﻿#==============================================================================
-# File:    simplePathChange.ps1
+# File:    simpleMembershipChange.ps1
 # Author:  Jason Singh
 # Date:    8/6/2014
-# Purpose: Cleans up student home directories from a specified school.
+# Purpose: Changes group membersips for a specfied graduation year OU.
 #==============================================================================
 
 #This is needed to supress errors, in this case to supress null path errors.
@@ -11,7 +11,7 @@ $ErrorActionPreference = "SilentlyContinue"
 #Imports AD module...
 Import-Module ActiveDirectory
 
-#Takes in a user inputted variable to determine which school students to change home directories for...
+#Takes in a user inputted variable to determine which school students to change group memberships for...
 $school = Read-Host 'Which school needs changes for home directories?(Please answer, PPS, UMS, MBS, CMS, or CHS.)'
 
 #This is a check to see if school OU exists...
@@ -23,7 +23,7 @@ type in the OU graduation year'
 #This is a check to see if graduation year OU exists...
 if([ADSI]::Exists("LDAP://OU=$gradYear,OU=Students,OU=$school,OU=District,DC=csd,DC=local")) {    
 
-#Uses and if else statement to setup searchOU to proper home directory path...
+#Uses and if else statement to setup searchOU for graduation year student membership changes...
 If ($school -eq 'PPS') {
 $searchOU = "OU=$gradYear,OU=Students,OU=PPS,OU=District,DC=csd,DC=local"
 }
@@ -49,7 +49,7 @@ Write-Host 'Not a valid answer. Please run the script again to continue...'
 exit
 }
 
-#Sets a variable to users which is all users found in the specified OU and their home directory properties...
+#Sets a variables to users and groups which is all users found in the specified OU and groups for membership changes...
 $users = Get-ADuser -filter * -SearchBase $searchOU
 $groups = Get-ADGroup -filter * -SearchBase "OU=GROUPS,OU=District,DC=csd,DC=local"
 
@@ -59,7 +59,7 @@ $newSchool = Read-Host "`n"'What is name of the new school the home directories 
 #This is a check to see if new school OU exists...
 if([ADSI]::Exists("LDAP://OU=$newSchool,OU=District,DC=csd,DC=local")) {    
 
-#This is a check prompt to make sure that you have the following fields right for the change in home directories....
+#This is a check prompt to make sure that you have the following fields right for the change in group memberships....
 
 Write-Host "`n"'Double check the following fields...'
 Write-Host "Current School: $school"
@@ -70,63 +70,61 @@ $confirm = Read-Host "`n"'Are the following fields correct? If so please type ye
 
 
 if($confirm = 'yes'){
-#Goes through a for each loop to process new home directory path for each user...
+#Goes through a for each loop to process new group memberships for each user...
 foreach ($user in $users) {
 $sam = (Get-Aduser -identity $user).samaccountname  
 
+#The process for each if statement is: Assign appropriate groups need to variables->Adds new primary group->Changes new group to primary
+#->Deletes all groups but it won't delete the one added because it is primary->Adds the web group after so it won't get deleted
 If ($newSchool -eq 'PPS') {    
     $ADgroup = 'PPS Students'
     $ADgroupWeb = 'PPS Students Web'
     Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false
-    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
     $newPrimaryGroup = Get-ADGroup $ADgroup
     $groupSid = $newPrimaryGroup.sid
     $GroupID = $groupSid.Value.Substring($groupSid.Value.LastIndexOf("-")+1)
-    #If you replace "YourGroup" with a group you want to test with you should get the correct group id.
     Get-ADUser $user | Set-ADObject -Replace @{primaryGroupID="$GroupID"}
     foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false}
+    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
     Write-Host Changing group memberships for $sam...
 }
 
 ElseIf ($newSchool -eq 'UMS') {
     $ADgroup = 'UMS Students'
     $ADgroupWeb = 'UMS Students Web'
-    Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false 
-    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
+    Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false
     $newPrimaryGroup = Get-ADGroup $ADgroup
     $groupSid = $newPrimaryGroup.sid
     $GroupID = $groupSid.Value.Substring($groupSid.Value.LastIndexOf("-")+1)
-    #If you replace "YourGroup" with a group you want to test with you should get the correct group id.
     Get-ADUser $user | Set-ADObject -Replace @{primaryGroupID="$GroupID"}
-    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false -Exclude $ADgroupWeb}
-    Write-Host Changing group memberships for $sam... 
+    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false}
+    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
+    Write-Host Changing group memberships for $sam...
 }
 
 ElseIf ($newSchool -eq 'MBS') { 
     $ADgroup = 'MBS Students'
     $ADgroupWeb = 'MBS Students Web'
     Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false
-    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
     $newPrimaryGroup = Get-ADGroup $ADgroup
     $groupSid = $newPrimaryGroup.sid
     $GroupID = $groupSid.Value.Substring($groupSid.Value.LastIndexOf("-")+1)
-    #If you replace "YourGroup" with a group you want to test with you should get the correct group id.
     Get-ADUser $user | Set-ADObject -Replace @{primaryGroupID="$GroupID"}
-    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false -Exclude $ADgroup, $ADgroupWeb}
+    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false}
+    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
     Write-Host Changing group memberships for $sam...
 }
 
 ElseIf ($newSchool -eq 'CMS') { 
     $ADgroup = 'CMS Students'
     $ADgroupWeb = 'CMS Students Web'
-    Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false 
-    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
+    Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false
     $newPrimaryGroup = Get-ADGroup $ADgroup
     $groupSid = $newPrimaryGroup.sid
     $GroupID = $groupSid.Value.Substring($groupSid.Value.LastIndexOf("-")+1)
-    #If you replace "YourGroup" with a group you want to test with you should get the correct group id.
     Get-ADUser $user | Set-ADObject -Replace @{primaryGroupID="$GroupID"}
-    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false -Exclude $ADgroup, $ADgroupWeb}
+    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false}
+    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
     Write-Host Changing group memberships for $sam...
 }
 
@@ -134,13 +132,12 @@ ElseIf ($newSchool -eq 'CHS') {
     $ADgroup = 'CHS Students'
     $ADgroupWeb = 'CHS Students Web' 
     Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false
-    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
     $newPrimaryGroup = Get-ADGroup $ADgroup
     $groupSid = $newPrimaryGroup.sid
     $GroupID = $groupSid.Value.Substring($groupSid.Value.LastIndexOf("-")+1)
-    #If you replace "YourGroup" with a group you want to test with you should get the correct group id.
     Get-ADUser $user | Set-ADObject -Replace @{primaryGroupID="$GroupID"}
-    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false -Exclude $ADgroup, $ADgroupWeb}
+    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false}
+    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
     Write-Host Changing group memberships for $sam...
 }
 }

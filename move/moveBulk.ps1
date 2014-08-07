@@ -15,19 +15,16 @@ if ($oldSchool -eq 'PPS' -or 'UMS') {
     $newSchool = 'MBS'
     $ADgroup = 'MBS Students'
     $ADgroupWeb = 'MBS Students Web'
-    $newHomeDir = \\mbs1\mbsusers$\Students\$gradYear\$username
 }
 elseif ($oldSchool -eq 'MBS') {
     $newSchool = 'CMS'
     $ADgroup = 'CMS Students'
-    $ADgroupWeb = 'CMS Students Web'
-    $newHomeDir = \\cms1\cmsusers$\students\$gradYear\$username    
+    $ADgroupWeb = 'CMS Students Web'   
 }
 elseif ($oldSchool -eq 'CMS') {
     $newSchool = 'CHS'
     $ADgroup = 'CHS Students'
     $ADgroupWeb = 'CHS Students Web'
-    $newHomeDir = \\chs1\chsusers$\students\$gradYear\$username 
 }
 else {
 Write-Host 'Not a valid answer. Please run the script again to continue...'
@@ -41,6 +38,16 @@ type in the OU graduation year'
 #This if makes a check to see that an OU exists for the graduation year typed in...
 if([ADSI]::Exists("LDAP://OU=$gradYear,OU=$oldSchool,OU=District,DC=csd,DC=local")) { 
 
+
+#This is a check prompt to make sure that you have the following fields right for the change in group memberships....
+
+Write-Host "`n"'Double check the following fields...'
+Write-Host "Current School: $school"
+Write-Host "Graduation Year Group of Students: $gradYear"
+Write-Host "New School: $newSchool"
+
+$confirm = Read-Host "`n"'Are the following fields correct? If so please type yes'
+if($confirm = 'yes'){
 
 #This variable is the OU year of which the excluded students have to stay back. You add one year to the current year because thats what year if they were to stay back they would be put into...
 $excludeYear = $gradYear + 1
@@ -66,11 +73,11 @@ if($excludeAnswer -eq "yes") {
 
     #A user check message that checks if the students typed and displayed from the loop are the correct user names...
     Write-Host "Are these the correct students to exlcude from the move? $excluded."
-    $confirm = Read-Host 'If so type yes and hit enter'
+    $confirmExcluded = Read-Host 'If so type yes and hit enter'
 
     #Processes that run after verified that the correct users were in fact entered...
     #Question: Is there a way to check if a variable that you have matches something inside an array? I need it for 
-    if($confirm -eq "yes") {
+    if($confirmExcluded -eq "yes") {
         $OUs = Get-ADOrganizationalUnit -filter * -SearchBase "OU=District,DC=csd,DC=local"
         foreach($OU in $OUs){
         if($OUs -match $excludeYear){
@@ -85,7 +92,7 @@ if($excludeAnswer -eq "yes") {
     }
 
     else {
-        Write-Host 'Not a valid answer. Please run the script again to continue...'
+        Write-Host 'Exiting the script. Please run the script again to continue...'
         exit
     }
 }
@@ -106,26 +113,132 @@ Remove-Item $user.HomeDirectory -Force -Recurse
 }
 }
 
-#Confirmation message...
-Write-Host 'Student home directory cleanup successful.'
+#Confirmation message for home directory cleanup...
+Write-Host 'Student home directory deletion successful.'
 
+foreach ($user in $users) { 
+
+If ($newSchool -eq 'PPS') {        
+Set-ADUser $sam -HomeDirectory "\\pps2\ppsusers$\Students\$gradYear\$sam" -HomeDrive "I:"
+Write-Host Changing home directory for $sam...  
+}
+
+ElseIf ($newSchool -eq 'UMS') {
+Set-ADUser $sam -HomeDirectory "\\ums2\umsusers$\Students\$gradYear\$sam" -HomeDrive "I:"
+Write-Host Changing home directory for $sam...  
+}
+
+ElseIf ($newSchool -eq 'MBS') { 
+Set-ADUser $sam -HomeDirectory "\\mbs1\mbsusers$\Students\$gradYear\$sam" -HomeDrive "I:" 
+Write-Host Changing home directory for $sam... 
+}
+
+ElseIf ($newSchool -eq 'CMS') { 
+Set-ADUser $sam -HomeDirectory "\\cms1\cmsusers$\Students\$gradYear\$sam" -HomeDrive "I:" 
+Write-Host Changing home directory for $sam... 
+}
+
+ElseIf ($newSchool -eq 'CHS') { 
+Set-ADUser $sam -HomeDirectory "\\chs1\chsusers$\Students\$gradYear\$sam" -HomeDrive "I:"
+Write-Host Changing home directory for $sam...  
+}
+}
+
+#Confirmation message for home directory path changes...
+Write-Host "`n"'Home directory path changes successful...'
+
+#This is the process for changing of group memberships...
 foreach ($user in $users) {
-    Remove-QADMemberOf -Identity $user.dn -RemoveAll
-    #Add the users to their proper groups after being removed from their previous ones...
-    Add-ADGroupMember -Identity $ADgroup $_ -Members $user -Confirm:$false  
-    Add-ADGroupMember -Identity $ADgroupWeb $_ -Members $user -Confirm:$false
-    }
+If ($newSchool -eq 'PPS') {    
+    $ADgroup = 'PPS Students'
+    $ADgroupWeb = 'PPS Students Web'
+    Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false
+    $newPrimaryGroup = Get-ADGroup $ADgroup
+    $groupSid = $newPrimaryGroup.sid
+    $GroupID = $groupSid.Value.Substring($groupSid.Value.LastIndexOf("-")+1)
+    Get-ADUser $user | Set-ADObject -Replace @{primaryGroupID="$GroupID"}
+    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false}
+    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
+    Write-Host Changing group memberships for $sam...
+}
+
+ElseIf ($newSchool -eq 'UMS') {
+    $ADgroup = 'UMS Students'
+    $ADgroupWeb = 'UMS Students Web'
+    Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false
+    $newPrimaryGroup = Get-ADGroup $ADgroup
+    $groupSid = $newPrimaryGroup.sid
+    $GroupID = $groupSid.Value.Substring($groupSid.Value.LastIndexOf("-")+1)
+    Get-ADUser $user | Set-ADObject -Replace @{primaryGroupID="$GroupID"}
+    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false}
+    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
+    Write-Host Changing group memberships for $sam...
+}
+
+ElseIf ($newSchool -eq 'MBS') { 
+    $ADgroup = 'MBS Students'
+    $ADgroupWeb = 'MBS Students Web'
+    Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false
+    $newPrimaryGroup = Get-ADGroup $ADgroup
+    $groupSid = $newPrimaryGroup.sid
+    $GroupID = $groupSid.Value.Substring($groupSid.Value.LastIndexOf("-")+1)
+    Get-ADUser $user | Set-ADObject -Replace @{primaryGroupID="$GroupID"}
+    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false}
+    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
+    Write-Host Changing group memberships for $sam...
+}
+
+ElseIf ($newSchool -eq 'CMS') { 
+    $ADgroup = 'CMS Students'
+    $ADgroupWeb = 'CMS Students Web'
+    Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false
+    $newPrimaryGroup = Get-ADGroup $ADgroup
+    $groupSid = $newPrimaryGroup.sid
+    $GroupID = $groupSid.Value.Substring($groupSid.Value.LastIndexOf("-")+1)
+    Get-ADUser $user | Set-ADObject -Replace @{primaryGroupID="$GroupID"}
+    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false}
+    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
+    Write-Host Changing group memberships for $sam...
+}
+
+ElseIf ($newSchool -eq 'CHS') {
+    $ADgroup = 'CHS Students'
+    $ADgroupWeb = 'CHS Students Web' 
+    Add-ADGroupMember -Identity $ADgroup  -Members $user -Confirm:$false
+    $newPrimaryGroup = Get-ADGroup $ADgroup
+    $groupSid = $newPrimaryGroup.sid
+    $GroupID = $groupSid.Value.Substring($groupSid.Value.LastIndexOf("-")+1)
+    Get-ADUser $user | Set-ADObject -Replace @{primaryGroupID="$GroupID"}
+    foreach ($group in $groups){Remove-ADGroupMember $group -Members $user -Confirm:$false}
+    Add-ADGroupMember -Identity $ADgroupWeb -Members $user -Confirm:$false
+    Write-Host Changing group memberships for $sam...
+}
+
+#Confirmation message of membership changes...
+Write-Host 'Student membership changes successful.'
 
 #This command moves the OU that was selected by the user to be moved to moved to the new school OU...
-Move-ADObject "OU=$gradYear,OU=Students,OU=$oldSchool,DC=District,csd=local" -TargetPath "OU=Students,OU=$newSchool,DC=District,csd=local"
+If ($newSchool -eq 'PPS' -or 'UMS') {
+if([ADSI]::Exists("LDAP://OU=$gradYear,OU=$newSchool,OU=District,DC=csd,DC=local")) {foreach ($user in $users){Move-ADObject -Identity $user -TargetPath "OU=$gradYear,OU=Students,OU=$newSchool,OU=District,DC=csd,DC=local"}
+Remove-ADOrganizationalUnit -Identity "OU=$gradYear,OU=$newSchool,OU=District,DC=csd,DC=local"
 }
-}
-    #This else belongs to school OU check at beginning of script...
-    else {            
-        Write-Host 'The OU for the school you typed in does not exist, try again.'            
-    }
 
-    #This else belongs to graduation year OU check at beginning of script...
-    else {            
-        Write-Host 'The OU for the graduation year you typed in does not exist, try again.'            
-    }
+else {Move-ADObject "OU=$gradYear,OU=Students,OU=$oldSchool,OU=District,DC=csd,DC=local" -TargetPath "OU=Students,OU=$newSchool,OU=District,DC=csd,DC=local"}
+
+}
+}
+else {
+Write-Host "`n"'Exiting the script. To continue rerun the script...'
+}
+
+}
+#Else messages for checks above to see if objects exist...
+else {
+Write-Host "`n"'The school you entered does not exist as an OU. Please recheck the name and rerun the script.'
+}
+
+
+}
+else {
+Write-Host "`n"'The graduation year for students you entered does not exist as an OU. Please recheck the year and rerun the script.'
+}

@@ -70,7 +70,7 @@ if($excludeAnswer -eq "yes") {
     if($confirmExcluded -eq "yes") {
         $OUs = Get-ADOrganizationalUnit -filter * -SearchBase "OU=District,DC=csd,DC=local"
         foreach($OU in $OUs){
-        if($OUs -match $excludeYear){
+        if($OUs -contains $exCludeYear){
         $excludePath = Get-ADOrganizationalUnit -Identity $excludeYear
         }
         }
@@ -201,14 +201,15 @@ ElseIf ($newSchool -eq 'CHS') {
 }
 Write-Host 'Student membership changes successful.'
 
-
-If ($newSchool -eq 'PPS' -or 'UMS') {
-if([ADSI]::Exists("LDAP://OU=$gradYear,OU=$newSchool,OU=District,DC=csd,DC=local")) {foreach ($user in $users){Move-ADObject -Identity $user -TargetPath "OU=$gradYear,OU=Students,OU=$newSchool,OU=District,DC=csd,DC=local"}
-Remove-ADOrganizationalUnit -Identity "OU=$gradYear,OU=$newSchool,OU=District,DC=csd,DC=local"
+if([ADSI]::Exists("LDAP://OU=$gradYear,OU=$newSchool,OU=District,DC=csd,DC=local")) {
+foreach ($user in $users){Move-ADObject -Identity $user -TargetPath "OU=$gradYear,OU=Students,OU=$newSchool,OU=District,DC=csd,DC=local"}
+Remove-ADOrganizationalUnit -Identity "OU=$gradYear,OU=$oldSchool,OU=District,DC=csd,DC=local"
 }
 
-else {Move-ADObject "OU=$gradYear,OU=Students,OU=$oldSchool,OU=District,DC=csd,DC=local" -TargetPath "OU=Students,OU=$newSchool,OU=District,DC=csd,DC=local"}
+else {
+Move-ADObject "OU=$gradYear,OU=Students,OU=$oldSchool,OU=District,DC=csd,DC=local" -TargetPath "OU=Students,OU=$newSchool,OU=District,DC=csd,DC=local"
+}
 
 }
 }
-}
+

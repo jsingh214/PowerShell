@@ -49,7 +49,7 @@ Write-Host 'Not a valid answer. Please run the script again to continue...'
 exit
 }
 
-#Sets a variables to users and groups which is all users found in the specified OU and groups for membership changes...
+#Sets a variables to users and groups which is all users found in the specified OU and groups for membership changes... 
 $users = Get-ADuser -filter * -SearchBase $searchOU
 $groups = Get-ADGroup -filter * -SearchBase "OU=GROUPS,OU=District,DC=csd,DC=local"
 

@@ -36,6 +36,7 @@ Write-Host 'Double check the following fields...'"`n"
 Write-Host "Current School: $oldSchool"
 Write-Host "Graduation Year Group of Students: $gradYear"
 Write-Host "New School: $newSchool"
+Write-Host 
 
 $confirm = Read-Host "`n"'Are the following fields correct? If so please type yes'
 if($confirm = 'yes'){

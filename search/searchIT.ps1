@@ -13,7 +13,7 @@ $ADComputer = $GetADComputer.name
 #what file to search for on remote pc
 
 $dest1 = "\c$\how_decrypt.gif"
-$dest2 = "\c$\how_decrypt.html"
+$dest2 = "\c$\User\User\Desktop\HELP_DECRYPT.html"
 
 #location and name of logfile to save results
 $logfile = "C:\Reports\results.txt"
@@ -23,17 +23,17 @@ if (test-connection -Computername $pc -count 1 -erroraction silentlycontinue)
 {#Connection Found
 "$pc found, checking..."
 
-if(test-path \\$pc$dest1 -erroraction silentlycontinue){
-Write-host $pc is good 
-$log = "$pc - how_decrypt.html - YES"; add-content $logfile $log}
+if(test-path \\$pc$dest2 -erroraction silentlycontinue){
+Write-host $pc VIRUS FOUND!
+}
 else {
 write-host $pc "-" " no html virus found"
-$log = "$pc - how_decrypt.html - NO"; add-content $logfile $log} 
+} 
 }
 
 else {
 write-host "$pc - is not communicating"
-$log = "$pc - offline"; add-content $logfile $log
+
 }
 
 }
